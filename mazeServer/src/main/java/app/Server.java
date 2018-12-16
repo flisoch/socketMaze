@@ -11,21 +11,29 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Server implements Observer {
+public class Server implements Observer, Runnable{
 
     private ServerSocket serverSocket;
     private List<Socket> sockets;
+    private Thread gameServerThread;
 
+    public ServerSocket getServerSocket() {
+        return serverSocket;
+    }
 
     public Server(int port) throws IOException {
         serverSocket = new ServerSocket(port);
         sockets = new ArrayList<>();
+        gameServerThread = new Thread(this::run);
+        gameServerThread.start();
     }
 
-    void run() {
+    @Override
+    public void run() {
         while (true) {
             try {
                 Socket socket = serverSocket.accept();
+                System.out.println("ACCEPTED IN GAMESOCKET");
                 sockets.add(socket);
                 Thread thread = new Thread(() -> {
                     try {
