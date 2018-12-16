@@ -16,40 +16,9 @@ public class Server implements Observer {
     private ServerSocket serverSocket;
     private List<Socket> sockets;
 
-    public static void main(String[] args) throws IOException {
-        Server server = new Server();
-        server.configureGame();
-        server.run();
-    }
 
-    private void configureGame() {
-        try {
-            Socket host = serverSocket.accept();
-            Thread thread = new Thread(() -> {
-                boolean configured = false;
-                try {
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(host.getInputStream()));
-                    String hostMessage = reader.readLine();
-                    while (!configured){
-                        configured = handleConfigMessage(hostMessage);
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-            thread.start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private boolean handleConfigMessage(String hostMessage) {
-        //get some settings from hostClient, configure some settings
-        return false;
-    }
-
-    public Server() throws IOException {
-        serverSocket = new ServerSocket(1234);
+    public Server(int port) throws IOException {
+        serverSocket = new ServerSocket(port);
         sockets = new ArrayList<>();
     }
 
