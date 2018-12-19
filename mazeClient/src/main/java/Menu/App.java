@@ -39,6 +39,7 @@ public class App {
                         break;
                     case "3":
                         showSettings();
+                        handleSettingsChooseInput();
                         break;
                     case "4":
                         break;
@@ -50,6 +51,41 @@ public class App {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void handleSettingsChooseInput() {
+        String choice = null;
+        try {
+            choice = reader.readLine();
+            switch (choice) {
+                case "1":
+                    //todo:sout default name or previously set name
+                    System.out.println("*your previous name*");
+                    changeName();
+                    break;
+                case "2":
+                    break;
+                default:
+                    clearDisplay();
+                    System.out.println("incorrect input");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void changeName() {
+
+        System.out.println("type new name: ");
+        try {
+            String name = reader.readLine();
+            //todo:set new name to Player presenter class
+        } catch (IOException e) {
+            System.out.println("name hasn't been read succesfully while changing the name");
+            e.printStackTrace();
+        }
+
     }
 
     private void handleServerChooseInput() {
@@ -93,6 +129,8 @@ public class App {
     }
 
     private void showSettings() {
+        System.out.println("1. change name");
+        System.out.println("2. exit");
     }
 
     private void showServers() {
