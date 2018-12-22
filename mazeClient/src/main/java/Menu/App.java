@@ -1,5 +1,6 @@
 package Menu;
 
+import GameProcess.HostClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -138,8 +139,14 @@ public class App {
         servers.forEach(System.out::println);
     }
 
-    private void startNewGame() {
-
+    private void startNewGame()     {
+        HostClient hostClient = new HostClient();
+        try {
+            hostClient.connectToMainServer();
+        } catch (IOException e) {
+            System.out.println("couldn't get Main server connection info from client files");
+            e.printStackTrace();
+        }
     }
 
     private void showMainMenu() {
