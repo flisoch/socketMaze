@@ -63,9 +63,9 @@ public class MainServer {
     private void sendAllInfoToHost(GameConfig gameConfig, PrintWriter writer) {
         //send ip, port, serverName, password
         System.out.println("sending ip, port to Host client!!");
-        writer.println("ip:"+gameConfig.getHostConnection().getServer().getServerSocket().getInetAddress().getHostAddress());
-        writer.println("port:"+gameConfig.getHostConnection().getServer().getServerSocket().getLocalPort());
-        writer.println("password:"+gameConfig.getServerPassword());
+        writer.println("ip:" + gameConfig.getHostConnection().getServer().getServerSocket().getInetAddress().getHostAddress());
+        writer.println("port:" + gameConfig.getHostConnection().getServer().getServerSocket().getLocalPort());
+        writer.println("status:" + "OK");
         writer.println("end");
         writer.flush();
 
@@ -75,7 +75,6 @@ public class MainServer {
         try {
             Server server = new Server(1235 + gameServerConfigs.size());
             hostConnection.setServer(server);
-//            System.out.println(hostConnection.getServer().getServerSocket().getInetAddress().getHostAddress());
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -88,14 +87,8 @@ public class MainServer {
         String[] parts = hostMessage.split(":");
         String command = parts[0];
         String data = parts[1];
-        switch (command){
-            /*case "ip":
-                gameConfig.setServerIp(Integer.parseInt(data));
-                break;
-            case "port":
-                gameConfig.setServerPort(Integer.parseInt(data));
-                break;*/
-            case"password":
+        switch (command) {
+            case "password":
                 gameConfig.setServerPassword(data);
                 break;
         }
