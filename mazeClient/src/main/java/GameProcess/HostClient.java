@@ -1,92 +1,61 @@
 package GameProcess;
 
+import Menu.MainServerConnector;
 import Menu.Server;
 import protocol.Protocol;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 public class HostClient {
 
-    Socket socket;
-
     public Server connectToMainServer()  {
-        Properties properties = new Properties();
-        int port;
-        String ip;
-        Server server = null;
-        try {
-            properties.load(new FileInputStream("mazeClient/src/main/resources/application.properties"));
-            port = Integer.parseInt(properties.getProperty("mainServer.port"));
-            ip = properties.getProperty("mainServer.ip");
-            InetAddress inetAddress = InetAddress.getByName(ip);
 
-            socket = new Socket(inetAddress, port);
+        Server server;
+        //todo:  prompt to configure automatically from default properties or by host
 
-            //todo:  prompt to configure automatically from default properties or by host
+        sendRequestToCreateBaseServer();
+        server = getBaseServerFromMain();
+        configureServer(server);
+        sendConfiguredServerInfo(server);
 
-            sendRequestToCreateBaseServer(socket);
-            server = getBaseServerFromMain();
-            configureServer(server);
-            sendConfiguredServerInfo(server);
-
-        } catch (IOException e) {
-            System.out.println("couldn't get Main server connection info from client files");
-            e.printStackTrace();
-        }
         return server;
     }
 
-    private void sendRequestToCreateBaseServer(Socket socket) {
-        PrintWriter writer = null;
-        try {
-            writer = new PrintWriter(socket.getOutputStream());
-            writer.println(Protocol.Command.CREATE_SERVER + " data");
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void sendRequestToCreateBaseServer() {
+        MainServerConnector.sendRequest(Protocol.Command.CREATE_SERVER.name());
     }
 
     private Server getBaseServerFromMain() {
-        Server server = null;
-        String gameServerIp = "";
-        int gameServerPort = 0;
 
-        BufferedReader reader;
-        try {
-            reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            String line = reader.readLine();
-            while (!line.equals("end")) {
-                String[] parts = line.split(":");
-                String command = parts[0];
-                String data = parts[1];
-                switch (command) {
-                    case "ip":
-                        gameServerIp = data;
-                        break;
-                    case "port":
-                        gameServerPort = Integer.parseInt(data);
-                        break;
-                    case "end":
-                        continue;
-                    default:
-                        System.out.println("recieved server attribute is not defined!");
-                }
-                line = reader.readLine();
+        Server server = Server.builder().build();
+
+        String response = MainServerConnector.getResponse();
+        String[] lines = response.split("\n");
+        for(String line: lines){
+
+            String[] parts = line.split(":");
+            String command = parts[0];
+            String data = parts[1];
+            switch (command) {
+                case "ip":
+                    try {
+                        server.setAddress(InetAddress.getByName(data));
+                    } catch (UnknownHostException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                case "port":
+                    server.setPort(Integer.parseInt(data));
+                    break;
+                case "end":
+                    continue;
+                default:
+                    System.out.println("recieved server attribute is not defined!");
             }
-
-            System.out.println("recieved from main server: your ServerIp: " + gameServerIp + ", port: " + gameServerPort);
-
-            server = Server.builder()
-                    .address(InetAddress.getByName(gameServerIp))
-                    .port(gameServerPort)
-                    .build();
-
-        } catch (IOException e) {
-            e.printStackTrace();
         }
         return server;
     }
@@ -102,7 +71,6 @@ public class HostClient {
             System.out.println("enter password: ");
             answer = reader.readLine();
             String password = answer;
-            password = "123456";
 
             System.out.println("enter maze height(width equals height): ");
             answer = reader.readLine();
@@ -116,6 +84,7 @@ public class HostClient {
             server.setMaxPlayers(maxPlayers);
             server.setName(gameServerName);
             server.setPassword(password);
+            server.setPlayersCount(1);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -124,21 +93,16 @@ public class HostClient {
 
     public void sendConfiguredServerInfo(Server server) {
         Protocol.Command command = Protocol.Command.SAVE_SERVER_CONFIGURATION;
-        try {
-            PrintWriter writer = new PrintWriter(socket.getOutputStream());
-            writer.println(
-                    command
-                            + " address:" + server.getAddress()
-                            + ",port:" + server.getPort()
-                            + ",name:" + server.getName()
-                            + ",password:" + server.getPassword()
-                            + ",maxPlayers:" + server.getMaxPlayers()
-                            + ",mazeHeight:" + server.getMazeHeight()
-            );
-            writer.flush();
-            System.out.println(server.toString());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        StringBuilder builder = new StringBuilder();
+        builder.append(command);
+        builder.append(" ipAddress:").append(server.getAddress().getHostAddress());
+        builder.append(",port:").append(server.getPort());
+        builder.append(",name:").append(server.getName());
+        builder.append(",password:").append(server.getPassword());
+        builder.append(",maxPlayers:").append(server.getMaxPlayers());
+        builder.append(",mazeHeight:").append(server.getMazeHeight());
+        builder.append(",playersCount:").append(server.getPlayersCount());
+
+        MainServerConnector.sendRequest(builder.toString());
     }
 }
