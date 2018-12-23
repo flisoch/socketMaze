@@ -135,6 +135,8 @@ public class HostClient {
                             + ",maxPlayers:" + server.getMaxPlayers()
                             + ",mazeHeight:" + server.getMazeHeight()
             );
+            writer.flush();
+            System.out.println(server.toString());
         } catch (IOException e) {
             e.printStackTrace();
         }
