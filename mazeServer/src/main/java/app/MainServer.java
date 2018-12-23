@@ -194,15 +194,6 @@ public class MainServer {
         }
     }
 
-    private void sendBaseServerInfo(GameConfig gameConfig, PrintWriter writer) {
-        //send ip, port
-        System.out.println("sending ip, port to Host client!!");
-        writer.println("ip:" + gameConfig.getAddress().getHostAddress());
-        writer.println("port:" + gameConfig.getPort());
-        writer.println(Command.END_MESSAGE);
-        writer.flush();
-
-    }
 
     private Server createGameServer() {
         Server server = null;
