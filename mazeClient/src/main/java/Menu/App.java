@@ -1,5 +1,6 @@
 package Menu;
 
+import GameProcess.Game;
 import GameProcess.HostClient;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -92,8 +93,9 @@ public class App {
     private void handleServerChooseInput() {
         List<Server> servers = ServerList.getServers();
         try {
+            System.out.println("choose a server: ");
             String choice = reader.readLine();
-            Server server = servers.get(Integer.parseInt(choice));
+            Server server = servers.get(Integer.parseInt(choice) - 1);
             String clientPassword = askPassword();
             if(checkPassword(server.getPassword(), clientPassword)){
                 connectToServer(server);
@@ -107,6 +109,12 @@ public class App {
 
     private void connectToServer(Server server) {
         //todo: connect and start the game
+        Game game = new Game(server.getAddress(),server.getPort());
+        try {
+            game.start();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean checkPassword(String password, String clientPassword) {
@@ -114,6 +122,7 @@ public class App {
     }
 
     private String askPassword() {
+        System.out.println("enter a password: ");
         try {
             return reader.readLine();
         } catch (IOException e) {
@@ -122,7 +131,6 @@ public class App {
         }
         return null;
     }
-
 
     private void clearDisplay() {
         System.out.println("\033[H\033[2J");
@@ -141,12 +149,8 @@ public class App {
 
     private void startNewGame()     {
         HostClient hostClient = new HostClient();
-        try {
-            hostClient.connectToMainServer();
-        } catch (IOException e) {
-            System.out.println("couldn't get Main server connection info from client files");
-            e.printStackTrace();
-        }
+        Server server = hostClient.connectToMainServer();
+        connectToServer(server);
     }
 
     private void showMainMenu() {
