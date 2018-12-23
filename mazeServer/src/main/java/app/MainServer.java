@@ -2,15 +2,20 @@ package app;
 
 
 import java.io.*;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 public class MainServer {
 
+    private static final int PORT = 1234;
     private static ServerSocket serverSocket;
     private static List<GameConfig> gameServerConfigs;
+    enum Command {CREATE_SERVER, SAVE_SERVER_CONFIGURATION};
 
     public static void main(String[] args) {
         MainServer server = new MainServer();
@@ -20,7 +25,7 @@ public class MainServer {
 
     public MainServer() {
         try {
-            serverSocket = new ServerSocket(1234);
+            serverSocket = new ServerSocket(PORT);
             gameServerConfigs = new ArrayList<>();
         } catch (IOException e) {
             e.printStackTrace();
@@ -32,22 +37,16 @@ public class MainServer {
         while (true) {
             try {
                 Socket host = serverSocket.accept();
-                HostConnection hostConnection = new HostConnection(host);
-                GameConfig gameConfig = new GameConfig(hostConnection);
-                gameServerConfigs.add(gameConfig);
+
                 Thread thread = new Thread(() -> {
                     boolean configured = false;
                     try {
                         BufferedReader br = new BufferedReader(new InputStreamReader(host.getInputStream()));
-                        String hostMessage = br.readLine();
-
-                        while (!configured) {
-                            configured = handleConfigMessage(gameConfig, hostMessage);
-                        }
-                        createGameServer(hostConnection);
-
                         PrintWriter writer = new PrintWriter(new OutputStreamWriter(host.getOutputStream()));
-                        sendAllInfoToHost(gameConfig, writer);
+
+                        String hostMessage = br.readLine();
+                        handle(hostMessage, writer);
+
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -60,39 +59,59 @@ public class MainServer {
         }
     }
 
-    private void sendAllInfoToHost(GameConfig gameConfig, PrintWriter writer) {
-        //send ip, port, serverName, password
+    private void handle(String hostMessage, PrintWriter writer) {
+        String[] parts = hostMessage.split(" ");
+        String commandFromHost = parts[0];
+        Optional<Command> optionalCommand = Arrays.stream(Command.values()).filter(command -> command.name().equalsIgnoreCase(commandFromHost)).findAny();
+        if(optionalCommand.isPresent()){
+            Command command = optionalCommand.get();
+            switch (command){
+                case CREATE_SERVER:
+
+                    Server server = createGameServer();
+                    InetAddress serverAddress = server.getServerSocket().getInetAddress();
+                    int port = server.getServerSocket().getLocalPort();
+                    writer.println("ip:" + serverAddress.getHostAddress());
+                    writer.println("port:" + port);
+                    writer.println("end");
+                    writer.flush();
+                    System.out.println("sent to host: " + "ip:" + serverAddress.getHostAddress() + "port:" + port);
+                    break;
+
+                case SAVE_SERVER_CONFIGURATION:
+
+                    String data = parts[1];
+                    GameConfig gameConfig = new GameConfig();
+                    gameServerConfigs.add(gameConfig);
+
+                    String[] lines = data.split(",");
+                    for(String line: lines){
+                        String[] lineParts = line.split(":");
+                        String attribute = lineParts[0];
+                        String value = lineParts[1];
+                    }
+
+            }
+        }
+    }
+
+    private void sendBaseServerInfo(GameConfig gameConfig, PrintWriter writer) {
+        //send ip, port
         System.out.println("sending ip, port to Host client!!");
-        writer.println("ip:" + gameConfig.getHostConnection().getServer().getServerSocket().getInetAddress().getHostAddress());
-        writer.println("port:" + gameConfig.getHostConnection().getServer().getServerSocket().getLocalPort());
-        writer.println("status:" + "OK");
+        writer.println("ip:"+gameConfig.getAddress().getHostAddress());
+        writer.println("port:"+gameConfig.getPort());
         writer.println("end");
         writer.flush();
 
     }
 
-    private void createGameServer(HostConnection hostConnection) {
+    private Server createGameServer() {
+        Server server = null;
         try {
-            Server server = new Server(1235 + gameServerConfigs.size());
-            hostConnection.setServer(server);
-
+            server = new Server(PORT + 1 + gameServerConfigs.size());
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return server;
     }
-
-
-    private boolean handleConfigMessage(GameConfig gameConfig, String hostMessage) {
-        //get some settings from hostClient, configure some settings
-        String[] parts = hostMessage.split(":");
-        String command = parts[0];
-        String data = parts[1];
-        switch (command) {
-            case "password":
-                gameConfig.setServerPassword(data);
-                break;
-        }
-        return gameConfig.isConfigured();
-    }
-
 }

@@ -1,49 +1,19 @@
 package app;
 
+import lombok.Data;
+
+import java.net.InetAddress;
 import java.net.Socket;
 
+@Data
 public class GameConfig {
-    public HostConnection getHostConnection() {
-        return hostConnection;
-    }
 
-    private HostConnection hostConnection;
-//    private int serverIp;
-//    private int serverPort;
+    private InetAddress address;
+    private int port;
+    private String name;
     private String serverPassword;
+    private int maxPlayers;
+    private int playersCount;
+    private int mazeHeight;
 
-    public boolean isConfigured(){
-        return serverPassword != null;
-
-//        return (serverIp != 0) && (serverPort != 0) && (serverPassword != null);
-    }
-
-    public GameConfig(HostConnection hostConnection) {
-        this.hostConnection = hostConnection;
-    }
-
-
-   /* public int getServerIp() {
-        return serverIp;
-    }
-
-    public int getServerPort() {
-        return serverPort;
-    }*/
-
-    public String getServerPassword() {
-        return serverPassword;
-    }
-
-    /*public void setServerIp(int serverIp) {
-        this.serverIp = serverIp;
-    }
-
-    public void setServerPort(int serverPort) {
-        this.serverPort = serverPort;
-    }*/
-
-    public void setServerPassword(String serverPassword) {
-        this.serverPassword = serverPassword;
-    }
 }
