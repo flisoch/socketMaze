@@ -15,7 +15,7 @@ public class MainServer {
     private static final int PORT = 1234;
     private static ServerSocket serverSocket;
     private static List<GameConfig> gameServerConfigs;
-    enum Command {CREATE_SERVER, SAVE_SERVER_CONFIGURATION};
+    enum Command {CREATE_SERVER, SAVE_SERVER_CONFIGURATION, DISCONNECT_MAIN};
 
     public static void main(String[] args) {
         MainServer server = new MainServer();
@@ -44,8 +44,12 @@ public class MainServer {
                         BufferedReader br = new BufferedReader(new InputStreamReader(host.getInputStream()));
                         PrintWriter writer = new PrintWriter(new OutputStreamWriter(host.getOutputStream()));
 
+
                         String hostMessage = br.readLine();
-                        handle(hostMessage, writer);
+                        while (!hostMessage.equalsIgnoreCase(Command.DISCONNECT_MAIN.name())){
+                            handle(hostMessage, writer);
+                            hostMessage = br.readLine();
+                        }
 
 
                     } catch (IOException e) {
@@ -62,6 +66,7 @@ public class MainServer {
     private void handle(String hostMessage, PrintWriter writer) {
         String[] parts = hostMessage.split(" ");
         String commandFromHost = parts[0];
+        System.out.println(commandFromHost);
         Optional<Command> optionalCommand = Arrays.stream(Command.values()).filter(command -> command.name().equalsIgnoreCase(commandFromHost)).findAny();
         if(optionalCommand.isPresent()){
             Command command = optionalCommand.get();
@@ -108,6 +113,7 @@ public class MainServer {
     private Server createGameServer() {
         Server server = null;
         try {
+            System.out.println(gameServerConfigs.size());
             server = new Server(PORT + 1 + gameServerConfigs.size());
         } catch (IOException e) {
             e.printStackTrace();
