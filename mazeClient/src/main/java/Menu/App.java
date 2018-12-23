@@ -2,10 +2,16 @@ package Menu;
 
 import GameProcess.Game;
 import GameProcess.HostClient;
+import protocol.Protocol;
+
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.util.List;
+import java.util.Properties;
 
 public class App {
 
@@ -14,7 +20,6 @@ public class App {
         app.run();
 
     }
-
     BufferedReader reader;
 
     public App() {
@@ -97,7 +102,7 @@ public class App {
             String choice = reader.readLine();
             Server server = servers.get(Integer.parseInt(choice) - 1);
             String clientPassword = askPassword();
-            if(checkPassword(server.getPassword(), clientPassword)){
+            if(passwordIsCorrect(server, clientPassword)){
                 connectToServer(server);
             }
         } catch (IOException e) {
@@ -106,6 +111,24 @@ public class App {
         }
 
     }
+
+    private boolean passwordIsCorrect(Server server, String clientPassword) {
+        boolean isCorrect = false;
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(Protocol.Command.CHECK_PASSWORD.name());
+        stringBuilder.append(" ").append("serverIp:").append(server.getAddress().getHostAddress());
+        stringBuilder.append(",").append("serverPort:").append(server.getPort());
+        stringBuilder.append(",").append("password:").append(clientPassword);
+
+        MainServerConnector.sendRequest(stringBuilder.toString());
+        String response = MainServerConnector.getResponse();
+        System.out.println(response);
+        if(response.equals("OK\n")){
+            isCorrect = true;
+        }
+        return isCorrect;
+    }
+
 
     private void connectToServer(Server server) {
         //todo: connect and start the game
@@ -117,9 +140,6 @@ public class App {
         }
     }
 
-    private boolean checkPassword(String password, String clientPassword) {
-        return password.equals(clientPassword);
-    }
 
     private String askPassword() {
         System.out.println("enter a password: ");
