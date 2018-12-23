@@ -5,6 +5,7 @@ import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +16,10 @@ public class MainServer {
     private static final int PORT = 1234;
     private static ServerSocket serverSocket;
     private static List<GameConfig> gameServerConfigs;
-    enum Command {CREATE_SERVER, SAVE_SERVER_CONFIGURATION, DISCONNECT_MAIN};
+
+    enum Command {CREATE_SERVER, SAVE_SERVER_CONFIGURATION, DISCONNECT_MAIN, GET_SERVERS, CHECK_PASSWORD, END_MESSAGE}
+
+    ;
 
     public static void main(String[] args) {
         MainServer server = new MainServer();
@@ -36,17 +40,15 @@ public class MainServer {
 
         while (true) {
             try {
-                Socket host = serverSocket.accept();
+                Socket client = serverSocket.accept();
 
                 Thread thread = new Thread(() -> {
-                    boolean configured = false;
+
                     try {
-                        BufferedReader br = new BufferedReader(new InputStreamReader(host.getInputStream()));
-                        PrintWriter writer = new PrintWriter(new OutputStreamWriter(host.getOutputStream()));
-
-
+                        BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
+                        PrintWriter writer = new PrintWriter(new OutputStreamWriter(client.getOutputStream()));
                         String hostMessage = br.readLine();
-                        while (!hostMessage.equalsIgnoreCase(Command.DISCONNECT_MAIN.name())){
+                        while (!hostMessage.equalsIgnoreCase(Command.DISCONNECT_MAIN.name())) {
                             handle(hostMessage, writer);
                             hostMessage = br.readLine();
                         }
@@ -63,14 +65,15 @@ public class MainServer {
         }
     }
 
-    private void handle(String hostMessage, PrintWriter writer) {
-        String[] parts = hostMessage.split(" ");
+    private void handle(String clientMessage, PrintWriter writer) {
+        String[] parts = clientMessage.split(" ");
         String commandFromHost = parts[0];
+        String data;
         System.out.println(commandFromHost);
         Optional<Command> optionalCommand = Arrays.stream(Command.values()).filter(command -> command.name().equalsIgnoreCase(commandFromHost)).findAny();
-        if(optionalCommand.isPresent()){
+        if (optionalCommand.isPresent()) {
             Command command = optionalCommand.get();
-            switch (command){
+            switch (command) {
                 case CREATE_SERVER:
 
                     Server server = createGameServer();
@@ -78,23 +81,114 @@ public class MainServer {
                     int port = server.getServerSocket().getLocalPort();
                     writer.println("ip:" + serverAddress.getHostAddress());
                     writer.println("port:" + port);
-                    writer.println("end");
+                    writer.println(Command.END_MESSAGE);
                     writer.flush();
-                    System.out.println("sent to host: " + "ip:" + serverAddress.getHostAddress() + "port:" + port);
+                    System.out.println("sent to host: " + "ip:" + serverAddress.getHostAddress() + " port:" + port);
                     break;
 
                 case SAVE_SERVER_CONFIGURATION:
-
-                    String data = parts[1];
+                    data = parts[1];
                     GameConfig gameConfig = new GameConfig();
-                    gameServerConfigs.add(gameConfig);
 
                     String[] lines = data.split(",");
-                    for(String line: lines){
+                    for (String line : lines) {
                         String[] lineParts = line.split(":");
                         String attribute = lineParts[0];
                         String value = lineParts[1];
+                        switch (attribute) {
+                            case "ipAddress":
+                                try {
+                                    gameConfig.setAddress(InetAddress.getByName(value));
+                                } catch (UnknownHostException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                            case "port":
+                                gameConfig.setPort(Integer.parseInt(value));
+                                break;
+                            case "name":
+                                gameConfig.setName(value);
+                                break;
+                            case "password":
+                                gameConfig.setServerPassword(value);
+                                break;
+                            case "maxPlayers":
+                                gameConfig.setMaxPlayers(Integer.parseInt(value));
+                                break;
+                            case "playersCount":
+                                gameConfig.setPlayersCount(Integer.parseInt(value));
+                                break;
+                            case "mazeHeight":
+                                gameConfig.setMazeHeight(Integer.parseInt(value));
+                                break;
+                            case "end":
+                                continue;
+                            default:
+                                System.out.println("recieved from host server attribute is not defined!");
+                        }
                     }
+                    gameServerConfigs.add(gameConfig);
+                    break;
+
+                case GET_SERVERS:
+                    gameServerConfigs.forEach(game -> {
+                        writer.println(
+                                "ip:" + game.getAddress().getHostAddress() + "," +
+                                        "port:" + game.getPort() + "," +
+                                        "name:" + game.getName() + "," +
+                                        "maxPlayers:" + game.getMaxPlayers() + "," +
+                                        "playersCount:" + game.getPlayersCount() + "," +
+                                        "mazeHeight:" + game.getMazeHeight()
+                        );
+                        writer.println(Command.END_MESSAGE);
+                        writer.flush();
+                    });
+                    break;
+
+                case CHECK_PASSWORD:
+                    data = parts[1];
+                    String[] dataLines = data.split(",");
+                    InetAddress serverIp = null;
+                    int serverPort = -1;
+                    String password = "";
+                    boolean passwordIsCorrect = false;
+                    for (String line : dataLines) {
+                        String[] lineParts = line.split(":");
+                        String attribute = lineParts[0];
+                        String value = lineParts[1];
+                        switch (attribute) {
+                            case "serverIp":
+                                try {
+                                    serverIp = InetAddress.getByName(value);
+                                } catch (UnknownHostException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                            case "serverPort":
+                                serverPort = Integer.parseInt(value);
+                                break;
+                            case "password":
+                                password = value;
+                                break;
+                        }
+                    }
+
+                    for(GameConfig gameConfig1: gameServerConfigs){
+                        if(gameConfig1.getAddress().equals(serverIp) &&
+                                gameConfig1.getPort() == serverPort &&
+                                gameConfig1.getServerPassword().equals(password)){
+                            passwordIsCorrect = true;
+                            break;
+                        }
+                    }
+                    if(passwordIsCorrect){
+                        writer.println("OK");
+                    }
+                    else {
+                        writer.println("INVALID PASSWORD");
+                    }
+                    writer.println(Command.END_MESSAGE);
+                    writer.flush();
 
             }
         }
@@ -103,9 +197,9 @@ public class MainServer {
     private void sendBaseServerInfo(GameConfig gameConfig, PrintWriter writer) {
         //send ip, port
         System.out.println("sending ip, port to Host client!!");
-        writer.println("ip:"+gameConfig.getAddress().getHostAddress());
-        writer.println("port:"+gameConfig.getPort());
-        writer.println("end");
+        writer.println("ip:" + gameConfig.getAddress().getHostAddress());
+        writer.println("port:" + gameConfig.getPort());
+        writer.println(Command.END_MESSAGE);
         writer.flush();
 
     }
@@ -113,7 +207,6 @@ public class MainServer {
     private Server createGameServer() {
         Server server = null;
         try {
-            System.out.println(gameServerConfigs.size());
             server = new Server(PORT + 1 + gameServerConfigs.size());
         } catch (IOException e) {
             e.printStackTrace();
