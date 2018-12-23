@@ -52,6 +52,7 @@ public class MainServer {
                             handle(hostMessage, writer);
                             hostMessage = br.readLine();
                         }
+                        //todo: close games/servers/idk what after Disconnecting
 
 
                     } catch (IOException e) {

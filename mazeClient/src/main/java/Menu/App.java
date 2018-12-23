@@ -5,13 +5,9 @@ import GameProcess.HostClient;
 import protocol.Protocol;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.Socket;
 import java.util.List;
-import java.util.Properties;
 
 public class App {
 
@@ -49,6 +45,7 @@ public class App {
                         handleSettingsChooseInput();
                         break;
                     case "4":
+                        disconnectFromMainServer(Protocol.Command.DISCONNECT_MAIN.name());
                         break;
                     default:
                         clearDisplay();
@@ -58,6 +55,10 @@ public class App {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void disconnectFromMainServer(String message) {
+        MainServerConnector.sendRequest(message);
     }
 
     private void handleSettingsChooseInput() {
