@@ -47,7 +47,7 @@ def main(server_ip, server_port, isHostRun, maze_height):
     client = Client(server_ip, server_port)
     client.connect()
     if isHostRun == str(True):
-        table = maze.get_table(maze_height)
+        table = maze.get_table(int(maze_height))
         client.saveTable(table)
     else:
         table = client.getSavedTable()

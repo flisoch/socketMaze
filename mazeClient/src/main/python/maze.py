@@ -2,17 +2,19 @@ import os
 import random
 import time, sys
 
-n = 13
-EMPTY = ' - '
-WALL = ' # '
-WAY = '   '
-FINISH = 'END'
-PASSED = ' . '
-CURRENT = ' @ '
-visibletable = [[WALL if i == 0 or i == n - 1 or j == 0 or j == n - 1 else WAY for j in range(n)] for i in range(n)]
-
 
 class Game:
+
+    EMPTY = ' - '
+    WALL = ' # '
+    WAY = '   '
+    FINISH = 'END'
+    PASSED = ' . '
+    CURRENT = ' @ '
+
+    def __init__(self, n):
+        self.n = int(n)
+        self.visibletable = [[self.WALL if i == 0 or i == self.n - 1 or j == 0 or j == self.n - 1 else self.WAY for j in range(self.n)] for i in range(self.n)]
 
     def getkey(self):
         import sys
@@ -47,19 +49,19 @@ class Game:
 
     def breakWallAndGo(self, x, y, nextx, nexty, table):
         if x > nextx:
-            table[x - 1][y] = WAY
+            table[x - 1][y] = self.WAY
         if x < nextx:
-            table[x + 1][y] = WAY
+            table[x + 1][y] = self.WAY
         if y > nexty:
-            table[x][y - 1] = WAY
+            table[x][y - 1] = self.WAY
         if y < nexty:
-            table[x][y + 1] = WAY
+            table[x][y + 1] = self.WAY
 
-        table[nextx][nexty] = WAY
+        table[nextx][nexty] = self.WAY
 
     def getStartCoords(self):
-        StartX = random.randrange(1, n, 2)
-        StartY = random.randrange(1, n, 2)
+        StartX = random.randrange(1, self.n, 2)
+        StartY = random.randrange(1, self.n, 2)
         # print('COORDINATES: ', StartX, StartY)
         return StartX, StartY
 
@@ -74,12 +76,12 @@ class Game:
         x, y = self.getStartCoords()
         stack = []
 
-        table[x][y] = WAY
+        table[x][y] = self.WAY
         go = True
         while go:
             x, y, go = self.nextStep(x, y, table, stack, go)
 
-        table[x][y] = FINISH
+        table[x][y] = self.FINISH
         print(stack)
         return stack
 
@@ -102,76 +104,75 @@ class Game:
 
     def getFreeNeighbours(self, x, y, table, shift=1):
         result = []
-        if x + shift < n:
-            if table[x + shift][y] == EMPTY:
+        if x + shift < self.n:
+            if table[x + shift][y] == self.EMPTY:
                 result.append([x + shift, y])
         if x - shift > 0:
-            if table[x - shift][y] == EMPTY:
+            if table[x - shift][y] == self.EMPTY:
                 result.append([x - shift, y])
-        if y + shift < n:
-            if table[x][y + shift] == EMPTY:
+        if y + shift < self.n:
+            if table[x][y + shift] == self.EMPTY:
                 result.append([x, y + shift])
         if y - shift > 0:
-            if table[x][y - shift] == EMPTY:
+            if table[x][y - shift] == self.EMPTY:
                 result.append([x, y - shift])
 
         return result
 
     def printField(self, x, y, table):
-        global visibletable
 
-        if 0 < x - 1 < n and 0 < y - 1 < n:
-            if visibletable[x - 1][y - 1] != table[x - 1][y - 1]:
-                visibletable[x - 1][y - 1] = table[x - 1][y - 1]
-        if 0 < x - 1 < n and 0 < y < n:
-            if visibletable[x - 1][y] != table[x - 1][y]:
-                visibletable[x - 1][y] = table[x - 1][y]
-        if 0 < x - 1 < n and 0 < y + 1 < n:
-            if visibletable[x - 1][y + 1] != table[x - 1][y + 1]:
-                visibletable[x - 1][y + 1] = table[x - 1][y + 1]
-        if 0 < x < n and 0 < y - 1 < n:
-            if visibletable[x][y - 1] != table[x][y - 1]:
-                visibletable[x][y - 1] = table[x][y - 1]
-        if 0 < x < n and 0 < y < n:
-            if visibletable[x][y] != table[x][y]:
-                visibletable[x][y] = table[x][y]
+        if 0 < x - 1 < self.n and 0 < y - 1 < self.n:
+            if self.visibletable[x - 1][y - 1] != table[x - 1][y - 1]:
+                self.visibletable[x - 1][y - 1] = table[x - 1][y - 1]
+        if 0 < x - 1 < self.n and 0 < y < self.n:
+            if self.visibletable[x - 1][y] != table[x - 1][y]:
+                self.visibletable[x - 1][y] = table[x - 1][y]
+        if 0 < x - 1 < self.n and 0 < y + 1 < self.n:
+            if self.visibletable[x - 1][y + 1] != table[x - 1][y + 1]:
+                self.visibletable[x - 1][y + 1] = table[x - 1][y + 1]
+        if 0 < x < self.n and 0 < y - 1 < self.n:
+            if self.visibletable[x][y - 1] != table[x][y - 1]:
+                self.visibletable[x][y - 1] = table[x][y - 1]
+        if 0 < x < self.n and 0 < y < self.n:
+            if self.visibletable[x][y] != table[x][y]:
+                self.visibletable[x][y] = table[x][y]
 
-        if 0 < x < n and 0 < y + 1 < n:
-            if visibletable[x][y + 1] != table[x][y + 1]:
-                visibletable[x][y + 1] = table[x][y + 1]
+        if 0 < x < self.n and 0 < y + 1 < self.n:
+            if self.visibletable[x][y + 1] != table[x][y + 1]:
+                self.visibletable[x][y + 1] = table[x][y + 1]
 
-        if 0 < x + 1 < n and 0 < y - 1 < n:
-            if visibletable[x + 1][y - 1] != table[x + 1][y - 1]:
-                visibletable[x + 1][y - 1] = table[x + 1][y - 1]
+        if 0 < x + 1 < self.n and 0 < y - 1 < self.n:
+            if self.visibletable[x + 1][y - 1] != table[x + 1][y - 1]:
+                self.visibletable[x + 1][y - 1] = table[x + 1][y - 1]
 
-        if 0 < x + 1 < n and 0 < y < n:
+        if 0 < x + 1 < self.n and 0 < y < self.n:
 
-            if visibletable[x + 1][y] != table[x + 1][y]:
-                visibletable[x + 1][y] = table[x + 1][y]
-        if 0 < x + 1 < n and 0 < y + 1 < n:
-            if visibletable[x + 1][y + 1] != table[x + 1][y + 1]:
-                visibletable[x + 1][y + 1] = table[x + 1][y + 1]
+            if self.visibletable[x + 1][y] != table[x + 1][y]:
+                self.visibletable[x + 1][y] = table[x + 1][y]
+        if 0 < x + 1 < self.n and 0 < y + 1 < self.n:
+            if self.visibletable[x + 1][y + 1] != table[x + 1][y + 1]:
+                self.visibletable[x + 1][y + 1] = table[x + 1][y + 1]
 
-        for line in visibletable:
+        for line in self.visibletable:
             print(''.join(str(item) for item in line))
 
         print('\n')
 
     def findend(self, x, y, table):
-        table[x][y] = CURRENT
+        table[x][y] = self.CURRENT
         self.clearConsol()
         self.printField(x, y, table)
-        while table[x][y] != FINISH:
+        while table[x][y] != self.FINISH:
 
             step = self.getkey()
 
             if step == b'\xe6' or step == b'w':
 
                 if self.checkIfPossible(x - 1, y, table):
-                    table[x][y] = PASSED
+                    table[x][y] = self.PASSED
                     x -= 1
-                    if table[x][y] != FINISH:
-                        table[x][y] = CURRENT
+                    if table[x][y] != self.FINISH:
+                        table[x][y] = self.CURRENT
                         self.clearConsol()
                         self.printField(x, y, table)
                     else:
@@ -182,10 +183,10 @@ class Game:
             elif step == b'\xa2' or step == b'd':
 
                 if self.checkIfPossible(x, y + 1, table):
-                    table[x][y] = PASSED
+                    table[x][y] = self.PASSED
                     y += 1
-                    if table[x][y] != FINISH:
-                        table[x][y] = CURRENT
+                    if table[x][y] != self.FINISH:
+                        table[x][y] = self.CURRENT
                         self.clearConsol()
                         self.printField(x, y, table)
                     else:
@@ -196,10 +197,10 @@ class Game:
 
             elif step == b'\xe4' or step == b'a':
                 if self.checkIfPossible(x, y - 1, table):
-                    table[x][y] = PASSED
+                    table[x][y] = self.PASSED
                     y -= 1
-                    if table[x][y] != FINISH:
-                        table[x][y] = CURRENT
+                    if table[x][y] != self.FINISH:
+                        table[x][y] = self.CURRENT
                         self.clearConsol()
                         self.printField(x, y, table)
                     else:
@@ -209,10 +210,10 @@ class Game:
             elif step == b'\xeb' or step == b's':
 
                 if self.checkIfPossible(x + 1, y, table):
-                    table[x][y] = PASSED
+                    table[x][y] = self.PASSED
                     x += 1
-                    if table[x][y] != FINISH:
-                        table[x][y] = CURRENT
+                    if table[x][y] != self.FINISH:
+                        table[x][y] = self.CURRENT
                         self.clearConsol()
                         self.printField(x, y, table)
                     else:
@@ -221,8 +222,8 @@ class Game:
         print('YOU ESCAPRED MAZE')
 
     def checkIfPossible(self, x, y, table):
-        if 0 < x < n and 0 < y < n:
-            if table[x][y] != WALL:
+        if 0 < x < self.n and 0 < y < self.n:
+            if table[x][y] !=self.WALL:
                 return True
         return False
 
@@ -231,7 +232,7 @@ class Game:
         self.findend(x, y, table)
 
     def generateTable(self):
-        table = [[WALL if j % 2 == 0 or i % 2 == 0 else EMPTY for j in range(n)] for i in range(n)]
+        table = [[self.WALL if j % 2 == 0 or i % 2 == 0 else self.EMPTY for j in range(self.n)] for i in range(self.n)]
         stack = self.generateLabirint(table)
         print(' labirint\n')
         self.fullLabirint(table, stack)
@@ -239,13 +240,11 @@ class Game:
 
 
 def main(table):
-    game = Game()
+    game = Game(len(table))
     game.startGame(table)
 
 
 def get_table(maze_height):
-    global n
-    n = maze_height
-    game = Game()
+    game = Game(maze_height)
     return game.generateTable()
 
