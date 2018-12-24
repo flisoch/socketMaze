@@ -1,15 +1,20 @@
 package app;
 
-import designParts.Observable;
-import designParts.Observer;
+import java.net.Socket;
 
-public class Connection implements Observable {
+public class Connection  {
+    Socket socket;
+    private String[][] mazeTable;
 
-    public void addObserver(Observer observer) {
-
+    public Connection(Socket socket) {
+        this.socket = socket;
     }
 
-    public void notifyObservers() {
+    public String[][] getMazeTable() {
+        return mazeTable;
+    }
 
+    public void setMazeTable(String[][] mazeTable) {
+        this.mazeTable = mazeTable;
     }
 }
