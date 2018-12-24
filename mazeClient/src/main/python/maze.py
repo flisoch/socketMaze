@@ -60,7 +60,7 @@ class Game:
     def getStartCoords(self):
         StartX = random.randrange(1, n, 2)
         StartY = random.randrange(1, n, 2)
-        print('COORDINATES: ', StartX, StartY)
+        # print('COORDINATES: ', StartX, StartY)
         return StartX, StartY
 
     def fullLabirint(self, table, stack):
@@ -85,12 +85,12 @@ class Game:
 
     def nextStep(self, x, y, table, stack, go):
         neighbours = self.getFreeNeighbours(x, y, table, shift=2)
-        print('neighbours: ', neighbours)
+        # print('neighbours: ', neighbours)
         if len(neighbours) > 1:
             stack.append([x, y])
         elif len(neighbours) == 0:
             go = False
-            print('GO FALSE')
+            # print('GO FALSE')
             return x, y, go
         coords = random.choice(neighbours)
         nextx = coords[0]
@@ -226,23 +226,26 @@ class Game:
                 return True
         return False
 
-    def startGame(self):
-        table = [[WALL if j % 2 == 0 or i % 2 == 0 else EMPTY for j in range(n)] for i in range(n)]
-
-        stack = self.generateLabirint(table)
-
-        print(' labirint\n')
-
-        self.fullLabirint(table, stack)
-
+    def startGame(self, table):
         x, y = self.getStartCoords()
         self.findend(x, y, table)
 
+    def generateTable(self):
+        table = [[WALL if j % 2 == 0 or i % 2 == 0 else EMPTY for j in range(n)] for i in range(n)]
+        stack = self.generateLabirint(table)
+        print(' labirint\n')
+        self.fullLabirint(table, stack)
+        return table
 
-def main():
+
+def main(table):
     game = Game()
-    game.startGame()
+    game.startGame(table)
 
 
-if __name__ == '__main__':
-    main()
+def get_table(maze_height):
+    global n
+    n = maze_height
+    game = Game()
+    return game.generateTable()
+
