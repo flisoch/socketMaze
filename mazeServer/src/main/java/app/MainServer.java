@@ -1,6 +1,8 @@
 package app;
 
 
+import protocol.Command;
+
 import java.io.*;
 import java.net.InetAddress;
 import java.net.ServerSocket;
@@ -16,10 +18,6 @@ public class MainServer {
     private static final int PORT = 1234;
     private static ServerSocket serverSocket;
     private static List<GameConfig> gameServerConfigs;
-
-    enum Command {CREATE_SERVER, SAVE_SERVER_CONFIGURATION, DISCONNECT_MAIN, GET_SERVERS, CHECK_PASSWORD, END_MESSAGE}
-
-    ;
 
     public static void main(String[] args) {
         MainServer server = new MainServer();
@@ -84,7 +82,6 @@ public class MainServer {
                     writer.println("port:" + port);
                     writer.println(Command.END_MESSAGE);
                     writer.flush();
-                    System.out.println("sent to host: " + "ip:" + serverAddress.getHostAddress() + " port:" + port);
                     break;
 
                 case SAVE_SERVER_CONFIGURATION:
@@ -141,9 +138,9 @@ public class MainServer {
                                         "playersCount:" + game.getPlayersCount() + "," +
                                         "mazeHeight:" + game.getMazeHeight()
                         );
-                        writer.println(Command.END_MESSAGE);
-                        writer.flush();
                     });
+                    writer.println(Command.END_MESSAGE);
+                    writer.flush();
                     break;
 
                 case CHECK_PASSWORD:
@@ -182,12 +179,15 @@ public class MainServer {
                             break;
                         }
                     }
+                    String status;
                     if(passwordIsCorrect){
-                        writer.println("OK");
+                        status = "OK";
                     }
                     else {
-                        writer.println("INVALID PASSWORD");
+                        status = "INVALID PASSWORD";
                     }
+                    System.out.println(status);
+                    writer.println(status);
                     writer.println(Command.END_MESSAGE);
                     writer.flush();
 
