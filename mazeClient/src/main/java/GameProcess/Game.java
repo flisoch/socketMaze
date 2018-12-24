@@ -9,14 +9,21 @@ public class Game {
     InetAddress gameServerIp;
     int gameServerPort;
 
-    public Game(InetAddress gameServerIp, int gameServerPort) {
+    public Game(InetAddress gameServerIp, int gameServerPort, boolean isHostRun, int mazeHeight) {
         this.gameServerIp = gameServerIp;
         this.gameServerPort = gameServerPort;
+        this.isHostRun = isHostRun;
+        this.mazeHeight = mazeHeight;
     }
+    private boolean isHostRun;
+    private int mazeHeight;
 
     public void start() throws IOException {
-        ProcessBuilder procBuilder = new ProcessBuilder("lxterminal", "--command=python mazeClient/src/main/python/game.py"
-                + " " + gameServerIp.getHostAddress() + " " + gameServerPort);
+
+        String hostString = isHostRun?"True":"False";
+        String command = "--command=python mazeClient/src/main/python/game.py" + " "
+                + gameServerIp.getHostAddress() + " " + gameServerPort + " " + hostString + " " + mazeHeight;
+        ProcessBuilder procBuilder = new ProcessBuilder("lxterminal", command);
 
         // перенаправляем стандартный поток ошибок на
         // стандартный вывод
