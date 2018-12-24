@@ -104,7 +104,7 @@ public class App {
             Server server = servers.get(Integer.parseInt(choice) - 1);
             String clientPassword = askPassword();
             if(passwordIsCorrect(server, clientPassword)){
-                connectToServer(server);
+                connectToServer(server, false);
             }
         } catch (IOException e) {
             System.out.println("incorrect input while choosing server");
@@ -130,10 +130,9 @@ public class App {
         return isCorrect;
     }
 
-
-    private void connectToServer(Server server) {
+    private void connectToServer(Server server, boolean isHostRun) {
         //todo: connect and start the game
-        Game game = new Game(server.getAddress(),server.getPort());
+        Game game = new Game(server.getAddress(),server.getPort(), isHostRun, server.getMazeHeight());
         try {
             game.start();
         } catch (IOException e) {
@@ -171,7 +170,7 @@ public class App {
     private void startNewGame()     {
         HostClient hostClient = new HostClient();
         Server server = hostClient.connectToMainServer();
-        connectToServer(server);
+        connectToServer(server, true);
     }
 
     private void showMainMenu() {
