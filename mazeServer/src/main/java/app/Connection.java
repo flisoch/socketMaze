@@ -1,20 +1,18 @@
 package app;
 
+import lombok.Data;
+
 import java.net.Socket;
 
+@Data
 public class Connection  {
     Socket socket;
-    private String[][] mazeTable;
+    private double finishTime;
+    private long playerId;
+    private String playerName;
+    boolean isReady = false;
 
     public Connection(Socket socket) {
         this.socket = socket;
-    }
-
-    public String[][] getMazeTable() {
-        return mazeTable;
-    }
-
-    public void setMazeTable(String[][] mazeTable) {
-        this.mazeTable = mazeTable;
     }
 }

@@ -22,6 +22,7 @@ public class MainServerConnector {
                 ip = (new BufferedReader(new InputStreamReader(System.in))).readLine();
                 inetAddress = InetAddress.getByName(ip);
                 socket = new Socket(inetAddress, port);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -31,7 +32,7 @@ public class MainServerConnector {
 
 
     public static void sendRequest(String message) {
-        PrintWriter writer = null;
+        PrintWriter writer;
         try {
             writer = new PrintWriter(getSocket().getOutputStream());
             writer.println(message);
