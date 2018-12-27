@@ -10,13 +10,19 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
-public class HostClient {
+public class HostClient extends Client{
+
+    public HostClient(String playerName) {
+        super(playerName);
+    }
+
+    public HostClient(Client client) {
+        super(client.getPlayerName());
+    }
 
     public Server connectToMainServer()  {
 
         Server server;
-        //todo:  prompt to configure automatically from default properties or by host
-
         sendRequestToCreateBaseServer();
         server = getBaseServerFromMain();
         configureServer(server);
