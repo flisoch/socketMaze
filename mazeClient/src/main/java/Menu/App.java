@@ -24,6 +24,8 @@ public class App {
 
     private void run() {
 
+        MainServerConnector.configure();
+
         try {
             String choice = "";
             while (!choice.equals("4")) {
