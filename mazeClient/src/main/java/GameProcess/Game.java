@@ -8,15 +8,17 @@ import java.net.Socket;
 public class Game {
     InetAddress gameServerIp;
     int gameServerPort;
+    private boolean isHostRun;
+    private int mazeHeight;
+    Client client;
 
-    public Game(InetAddress gameServerIp, int gameServerPort, boolean isHostRun, int mazeHeight) {
+    public Game(InetAddress gameServerIp, int gameServerPort, boolean isHostRun, int mazeHeight, Client client) {
         this.gameServerIp = gameServerIp;
         this.gameServerPort = gameServerPort;
         this.isHostRun = isHostRun;
         this.mazeHeight = mazeHeight;
+        this.client = client;
     }
-    private boolean isHostRun;
-    private int mazeHeight;
 
     public void start() throws IOException {
         String osName = System.getProperty("os.name");
@@ -31,13 +33,13 @@ public class Game {
         }
         else {
             terminalName = "cmd";
-            terminalCommandParameter = "-command";
+            terminalCommandParameter = " -command ";
         }
 
         String hostString = isHostRun?"True":"False";
         String command = "python game.py" + " "
-                + gameServerIp.getHostAddress() + " " + gameServerPort + " " + hostString + " " + mazeHeight;
-        System.out.println(terminalName + command);
+                + gameServerIp.getHostAddress() + " " + gameServerPort + " " + hostString + " " + mazeHeight + " " + client.getPlayerName();
+        System.out.println(terminalName + terminalCommandParameter + command);
         ProcessBuilder procBuilder = new ProcessBuilder(terminalName, terminalCommandParameter, command);
 
         // перенаправляем стандартный поток ошибок на
