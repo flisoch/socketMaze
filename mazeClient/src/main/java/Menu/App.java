@@ -1,5 +1,6 @@
 package Menu;
 
+import GameProcess.Client;
 import GameProcess.Game;
 import GameProcess.HostClient;
 import protocol.Protocol;
@@ -16,7 +17,8 @@ public class App {
         app.run();
 
     }
-    BufferedReader reader;
+    private BufferedReader reader;
+    private Client client;
 
     public App() {
         this.reader = new BufferedReader(new InputStreamReader(System.in));
@@ -25,6 +27,14 @@ public class App {
     private void run() {
 
         MainServerConnector.configure();
+        System.out.println("enter your username: ");
+        String name = "unnamed";
+        try {
+            name = reader.readLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        client = new Client(name);
 
         try {
             String choice = "";
@@ -64,19 +74,17 @@ public class App {
     }
 
     private void handleSettingsChooseInput() {
-        String choice = null;
+        String choice;
         try {
             choice = reader.readLine();
             switch (choice) {
                 case "1":
-                    //todo:sout default name or previously set name
-                    System.out.println("*your previous name*");
+                    System.out.println(client.getPlayerName());
                     changeName();
                     break;
                 case "2":
                     break;
                 default:
-                    clearDisplay();
                     System.out.println("incorrect input");
             }
         } catch (IOException e) {
@@ -90,7 +98,7 @@ public class App {
         System.out.println("type new name: ");
         try {
             String name = reader.readLine();
-            //todo:set new name to Player presenter class
+            client.setPlayerName(name);
         } catch (IOException e) {
             System.out.println("name hasn't been read succesfully while changing the name");
             e.printStackTrace();
@@ -133,8 +141,7 @@ public class App {
     }
 
     private void connectToServer(Server server, boolean isHostRun) {
-        //todo: connect and start the game
-        Game game = new Game(server.getAddress(),server.getPort(), isHostRun, server.getMazeHeight());
+        Game game = new Game(server.getAddress(),server.getPort(), isHostRun, server.getMazeHeight(), client);
         try {
             game.start();
         } catch (IOException e) {
@@ -169,8 +176,8 @@ public class App {
         servers.forEach(System.out::println);
     }
 
-    private void startNewGame()     {
-        HostClient hostClient = new HostClient();
+    private void startNewGame() {
+        HostClient hostClient = new HostClient(client);
         Server server = hostClient.connectToMainServer();
         connectToServer(server, true);
     }
