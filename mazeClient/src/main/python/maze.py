@@ -241,7 +241,11 @@ class Game:
 
 def main(table):
     game = Game(len(table))
+    start = time.time()
     game.startGame(table)
+    end = time.time()
+    print(end - start)
+    return end - start
 
 
 def get_table(maze_height):
