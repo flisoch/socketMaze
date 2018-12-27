@@ -5,21 +5,23 @@ import protocol.Protocol;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.Properties;
 
 public class MainServerConnector {
     private static Socket socket;
 
     public static Socket getSocket(){
-        if(socket == null){
-            Properties properties = new Properties();
-            try {
-                properties.load(new FileInputStream("mazeClient/src/main/resources/application.properties"));
-                int port = Integer.parseInt(properties.getProperty("mainServer.port"));
-                String ip = properties.getProperty("mainServer.ip");
-                InetAddress inetAddress = InetAddress.getByName(ip);
-                socket = new Socket(inetAddress, port);
+        if(socket == null) {
 
+            int port = 1234;
+            String ip = null;
+            InetAddress inetAddress = null;
+            try {
+                System.out.println("Enter main server ip: ");
+                ip = (new BufferedReader(new InputStreamReader(System.in))).readLine();
+                inetAddress = InetAddress.getByName(ip);
+                socket = new Socket(inetAddress, port);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -52,5 +54,9 @@ public class MainServerConnector {
             e.printStackTrace();
         }
         return builder.toString();
+    }
+
+    public static void configure() {
+        getSocket();
     }
 }
