@@ -19,11 +19,26 @@ public class Game {
     private int mazeHeight;
 
     public void start() throws IOException {
+        String osName = System.getProperty("os.name");
+        String terminalName = "";
+        String terminalCommandParameter = "";
+        if(osName.contains("Linux")){
+            terminalName = "lxterminal";
+            terminalCommandParameter = "--command";
+        }
+        else if(osName.contains("Mac")){
+            terminalName = "Termnal";
+        }
+        else {
+            terminalName = "cmd";
+            terminalCommandParameter = "-command";
+        }
 
         String hostString = isHostRun?"True":"False";
-        String command = "--command=python mazeClient/src/main/python/game.py" + " "
+        String command = "python game.py" + " "
                 + gameServerIp.getHostAddress() + " " + gameServerPort + " " + hostString + " " + mazeHeight;
-        ProcessBuilder procBuilder = new ProcessBuilder("lxterminal", command);
+        System.out.println(terminalName + command);
+        ProcessBuilder procBuilder = new ProcessBuilder(terminalName, terminalCommandParameter, command);
 
         // перенаправляем стандартный поток ошибок на
         // стандартный вывод
