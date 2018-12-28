@@ -1,6 +1,6 @@
 import socket
 import sys
-
+import os
 import maze
 
 
@@ -45,16 +45,15 @@ class Client:
                 table[i][j] = items[j]
         return table
 
-    def waitOtherPlayers(self, player_id):
+    def waitOtherPlayers(self):
         # todo: send my 'ready' status, read approval, when allows, start the game
-        message = "READY player_id:" + player_id + '\n'
+        message = "READY " + '\n'
         self.socket.send(message.encode())
         print("waiting for other players...")
         status = str(self.socket.recv(2048)[:-1])
 
-    def sendTimeToDefineWinner(self, time, player_id):
-        print('sending time')
-        message = "SEND_TIME " + "time:" + str(time) + ",player_id:" + player_id + '\n'
+    def sendTimeToDefineWinner(self, time):
+        message = "SEND_TIME " + "time:" + str(time) + '\n'
         self.socket.send(message.encode())
         print("waiting for others...")
 
@@ -65,6 +64,7 @@ class Client:
         results = str(self.socket.recv(2048)[:-2])
         results_rows = results.split('//')
 
+        # clearConsol()
         for result in results_rows:
             print(result)
 
@@ -85,20 +85,16 @@ class Client:
 def main(server_ip, server_port, isHostRun, maze_height, player_name):
     print(server_port, server_ip, isHostRun, player_name)
     client = Client(server_ip, server_port, player_name)
-    print('created!')
     # client.connect()
     if isHostRun == str(True):
         table = maze.get_table(int(maze_height))
-        print('Getting table!')
         client.saveTable(table)
     else:
-        print('GEttin table')
         table = client.getSavedTable()
-    print('before waitin for players')
-    client.waitOtherPlayers(client.player_id)
+    client.waitOtherPlayers()
     # starts the game and retuns time required for user to get escaped
     time = maze.main(table)
-    client.sendTimeToDefineWinner(time, client.player_id)
+    client.sendTimeToDefineWinner(time)
     client.showResults()
     input('type any key to exit the game')
     client.sendKillServerMessage()
@@ -106,3 +102,9 @@ def main(server_ip, server_port, isHostRun, maze_height, player_name):
 
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+
+def clearConsol():
+    if sys.platform == 'win32':
+        os.system('cls')
+    else:
+        os.system('clear')
