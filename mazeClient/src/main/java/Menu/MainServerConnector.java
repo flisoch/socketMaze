@@ -1,5 +1,6 @@
 package Menu;
 
+import lombok.Data;
 import protocol.Protocol;
 
 import java.io.*;
@@ -8,8 +9,17 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
+
 public class MainServerConnector {
     private static Socket socket;
+    private static String mainServerAddress;
+
+    public static String getIp(){
+        if(mainServerAddress == null){
+            getSocket();
+        }
+        return mainServerAddress;
+    }
 
     public static Socket getSocket(){
         if(socket == null) {
@@ -20,6 +30,7 @@ public class MainServerConnector {
             try {
                 System.out.println("Enter main server ip: ");
                 ip = (new BufferedReader(new InputStreamReader(System.in))).readLine();
+                mainServerAddress = ip;
                 inetAddress = InetAddress.getByName(ip);
                 socket = new Socket(inetAddress, port);
 
