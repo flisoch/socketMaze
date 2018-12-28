@@ -13,7 +13,7 @@ public class GameConfig {
     private String name;
     private String serverPassword;
     private int maxPlayers;
-    private int playersCount;
+    private int playersCount = 0;
     private int mazeHeight;
 
 }
