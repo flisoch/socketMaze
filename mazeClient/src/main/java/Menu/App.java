@@ -108,6 +108,9 @@ public class App {
 
     private void handleServerChooseInput() {
         List<Server> servers = ServerList.getServers();
+        if(servers.size() == 0){
+            return;
+        }
         try {
             System.out.println("choose a server: ");
             String choice = reader.readLine();
@@ -173,6 +176,9 @@ public class App {
 
     private void showServers() {
         List<Server> servers = ServerList.getServers();
+        if(servers.size() == 0){
+            System.out.println("no servers created yet");
+        }
         servers.forEach(System.out::println);
     }
 
