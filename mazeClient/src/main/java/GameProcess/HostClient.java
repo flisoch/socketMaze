@@ -5,12 +5,11 @@ import Menu.Server;
 import protocol.Protocol;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
+import java.util.Enumeration;
 import java.util.Properties;
 
-public class HostClient extends Client{
+public class HostClient extends Client {
 
     public HostClient(String playerName) {
         super(playerName);
@@ -20,8 +19,7 @@ public class HostClient extends Client{
         super(client.getPlayerName());
     }
 
-    public Server connectToMainServer()  {
-
+    public Server connectToMainServer() {
         Server server;
         sendRequestToCreateBaseServer();
         server = getBaseServerFromMain();
@@ -41,7 +39,7 @@ public class HostClient extends Client{
 
         String response = MainServerConnector.getResponse();
         String[] lines = response.split("\n");
-        for(String line: lines){
+        for (String line : lines) {
 
             String[] parts = line.split(":");
             String command = parts[0];
@@ -49,7 +47,7 @@ public class HostClient extends Client{
             switch (command) {
                 case "ip":
                     try {
-                        server.setAddress(InetAddress.getByName(data));
+                        server.setAddress(InetAddress.getByName(MainServerConnector.getIp()));
                     } catch (UnknownHostException e) {
                         e.printStackTrace();
                     }
@@ -81,6 +79,9 @@ public class HostClient extends Client{
             System.out.println("enter maze height(width equals height): ");
             answer = reader.readLine();
             int height = Integer.parseInt(answer);
+            if (height % 2 == 0) {
+                height++;
+            }
 
             System.out.println("enter maz players count: ");
             answer = reader.readLine();
@@ -101,7 +102,7 @@ public class HostClient extends Client{
         Protocol.Command command = Protocol.Command.SAVE_SERVER_CONFIGURATION;
         StringBuilder builder = new StringBuilder();
         builder.append(command);
-        builder.append(" ipAddress:").append(server.getAddress().getHostAddress());
+        builder.append(" ipAddress:").append(MainServerConnector.getIp());
         builder.append(",port:").append(server.getPort());
         builder.append(",name:").append(server.getName());
         builder.append(",password:").append(server.getPassword());
