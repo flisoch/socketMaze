@@ -1,6 +1,7 @@
 package app;
 
 
+import lombok.Data;
 import protocol.Command;
 
 import java.io.*;
@@ -23,6 +24,14 @@ public class MainServer {
         MainServer server = new MainServer();
         server.run();
 
+    }
+
+    public static int getPORT() {
+        return PORT;
+    }
+
+    public static ServerSocket getServerSocket() {
+        return serverSocket;
     }
 
     public MainServer() {
@@ -50,8 +59,6 @@ public class MainServer {
                             handle(hostMessage, writer);
                             hostMessage = br.readLine();
                         }
-                        //todo: close games/servers/idk what after Disconnecting
-
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -190,7 +197,14 @@ public class MainServer {
                     writer.println(status);
                     writer.println(Command.END_MESSAGE);
                     writer.flush();
-
+                case KILL_SERVER:
+                    data = parts[1];
+                    String finalData = data;
+                    boolean killed = gameServerConfigs.remove(gameServerConfigs.stream().
+                            filter(server1 -> server1.getPort() == Integer.parseInt(finalData))
+                            .findAny()
+                            .get());
+                    System.out.println("KILLED :" + killed);
             }
         }
     }
