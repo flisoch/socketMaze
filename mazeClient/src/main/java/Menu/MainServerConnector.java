@@ -9,7 +9,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
-
 public class MainServerConnector {
     private static Socket socket;
     private static String mainServerAddress;
