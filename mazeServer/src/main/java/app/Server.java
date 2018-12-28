@@ -31,7 +31,6 @@ public class Server implements Runnable {
 
     @Override
     public void run() {
-        //todo:kill server somehow
         AtomicBoolean gameFinished = new AtomicBoolean(false);
         while (!gameFinished.get()) {
             try {
@@ -60,9 +59,22 @@ public class Server implements Runnable {
                     }
                 });
                 thread.start();
+                gameFinished.set(true);
             } catch (IOException e) {
                 e.printStackTrace();
             }
+        }
+        killServer();
+    }
+
+    private void killServer(){
+        try {
+            Socket socket = new Socket(MainServer.getServerSocket().getInetAddress(),MainServer.getPORT());
+            PrintWriter writer = new PrintWriter(socket.getOutputStream());
+            writer.println(Command.KILL_SERVER.name() + " " + serverSocket.getLocalPort());
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
@@ -71,7 +83,6 @@ public class Server implements Runnable {
         String[] parts = message.split(" ", 2);
         String commandFromClient = parts[0];
         String data;
-        long playerId;
 
         System.out.println(commandFromClient);
         Optional<Command> optionalCommand = Arrays.stream(Command.values()).filter(command -> command.name().equalsIgnoreCase(commandFromClient)).findAny();
@@ -106,31 +117,17 @@ public class Server implements Runnable {
                     builder.setLength(builder.length() - 3);
                     //todo:check if works without \n
                     builder.append('\n');
-                    System.out.println(builder);
                     writer.println(builder.toString());
                     writer.flush();
                     break;
                 case SEND_TIME:
                     data = parts[1];
-                    String[] timeAndPlayerId = data.split(",");
-                    double finishTime = Double.parseDouble(timeAndPlayerId[0].split(":")[1]);
-                    playerId = Long.parseLong(timeAndPlayerId[1].split(":")[1]);
-                    connection = connections.stream()
-                            .filter(connection3 -> connection3.getPlayerId() == playerId)
-                            .findAny()
-                            .orElse(null);
+                    System.out.println(data);
+                    double finishTime = Double.parseDouble(data.split(":")[1]);
                     connection.setFinishTime(finishTime);
                     break;
                 case READY:
-                    data = parts[1];
-                    playerId = Long.parseLong(data.split(":")[1]);
-                    connection = connections.stream()
-                            .filter(connection4 -> connection4.getPlayerId() == playerId)
-                            .findAny()
-                            .orElse(null);
                     connection.isReady = true;
-
-
                     boolean ready = false;
                     while (!ready) {
                         ready = connections.stream()
@@ -159,10 +156,8 @@ public class Server implements Runnable {
                 case CREATE_PLAYER_ID:
                     data = parts[1];
                     String playerName = data.split(":")[1];
-                    System.out.println(playerName);
                     connection.setPlayerName(playerName);
                     connection.setPlayerId(System.currentTimeMillis());
-                    System.out.println(connection.getPlayerId());
                     writer.println(connection.getPlayerId());
                     writer.flush();
             }
