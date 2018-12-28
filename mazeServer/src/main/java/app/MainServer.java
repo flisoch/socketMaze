@@ -17,6 +17,7 @@ import java.util.Optional;
 public class MainServer {
 
     private static final int PORT = 1234;
+    private static int counter = 1;
     private static ServerSocket serverSocket;
     private static List<GameConfig> gameServerConfigs;
 
@@ -132,20 +133,24 @@ public class MainServer {
                                 System.out.println("recieved from host server attribute is not defined!");
                         }
                     }
-                    gameServerConfigs.add(gameConfig);
+                    System.out.println(gameServerConfigs.add(gameConfig));
                     break;
 
                 case GET_SERVERS:
-                    gameServerConfigs.forEach(game -> {
-                        writer.println(
+                    System.out.println("servers count: " + gameServerConfigs.size());
+                    if(gameServerConfigs.size() == 0){
+                        writer.write("NULL");
+                    }
+                    else {
+                        gameServerConfigs.forEach(game -> writer.println(
                                 "ip:" + game.getAddress().getHostAddress() + "," +
                                         "port:" + game.getPort() + "," +
                                         "name:" + game.getName() + "," +
                                         "maxPlayers:" + game.getMaxPlayers() + "," +
                                         "playersCount:" + game.getPlayersCount() + "," +
                                         "mazeHeight:" + game.getMazeHeight()
-                        );
-                    });
+                        ));
+                    }
                     writer.println(Command.END_MESSAGE);
                     writer.flush();
                     break;
@@ -197,6 +202,7 @@ public class MainServer {
                     writer.println(status);
                     writer.println(Command.END_MESSAGE);
                     writer.flush();
+                    break;
                 case KILL_SERVER:
                     data = parts[1];
                     String finalData = data;
@@ -205,6 +211,19 @@ public class MainServer {
                             .findAny()
                             .get());
                     System.out.println("KILLED :" + killed);
+                    break;
+                case GET_SERVER_CONFIG:
+                    data = parts[1];
+                    String port1 = data;
+
+                    GameConfig gameConfig2 = gameServerConfigs.stream()
+                            .filter(gameConfig1 -> gameConfig1.getPort() == Integer.parseInt(port1))
+                            .findAny()
+                            .get();
+                    System.out.println(gameServerConfigs.size());
+                    writer.println("maxPlayers:" + gameConfig2.getMaxPlayers());
+                    writer.flush();
+                    break;
             }
         }
     }
@@ -213,7 +232,8 @@ public class MainServer {
     private Server createGameServer() {
         Server server = null;
         try {
-            server = new Server(PORT + 1 + gameServerConfigs.size());
+            server = new Server(PORT + counter++);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
