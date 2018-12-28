@@ -229,6 +229,8 @@ class Game:
 
     def startGame(self, table):
         x, y = self.getStartCoords()
+        while table[x][y] == self.CURRENT:
+            x,y = self.getStartCoords()
         self.findend(x, y, table)
 
     def generateTable(self):
