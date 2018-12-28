@@ -17,6 +17,7 @@ public class Server implements Runnable {
     private List<Connection> connections;
     private Thread gameServerThread;
     private String[][] table;
+    private GameConfig gameConfig;
 
     public ServerSocket getServerSocket() {
         return serverSocket;
@@ -27,6 +28,7 @@ public class Server implements Runnable {
         connections = new ArrayList<>();
         gameServerThread = new Thread(this::run);
         gameServerThread.start();
+        gameConfig = new GameConfig();
     }
 
     @Override
@@ -35,10 +37,16 @@ public class Server implements Runnable {
         while (!gameFinished.get()) {
             try {
                 Socket socket = serverSocket.accept();
+                //todo:kostil ubrat
+                getGameConfig();
 
                 Connection connection = new Connection(socket);
                 System.out.println("ACCEPTED IN GAMESOCKET");
                 connections.add(connection);
+                gameConfig.setPlayersCount(gameConfig.getPlayersCount() + 1);
+                if(gameConfig.getPlayersCount() == gameConfig.getMaxPlayers()){
+                    killServer();
+                }
                 Thread thread = new Thread(() -> {
                     try {
                         BufferedReader br = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -59,12 +67,32 @@ public class Server implements Runnable {
                     }
                 });
                 thread.start();
-                gameFinished.set(true);
+                System.out.println("still alive");
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        killServer();
+    }
+
+    private void getGameConfig(){
+        int maxPlayers;
+
+        try {
+            Socket socket = new Socket(MainServer.getServerSocket().getInetAddress(),MainServer.getPORT());
+            PrintWriter writer = new PrintWriter(socket.getOutputStream());
+            writer.println(Command.GET_SERVER_CONFIG.name() + " " + serverSocket.getLocalPort());
+            writer.flush();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String line = reader.readLine();
+            System.out.println(line);
+            maxPlayers = Integer.parseInt(line.split(":")[1]);
+            System.out.println(maxPlayers);
+            gameConfig.setMaxPlayers(maxPlayers);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void killServer(){
@@ -132,7 +160,7 @@ public class Server implements Runnable {
                     while (!ready) {
                         ready = connections.stream()
                                 .filter(Connection::isReady)
-                                .count() == connections.size();
+                                .count() == gameConfig.getMaxPlayers();
                         if(!ready){
                             try {
                                 Thread.sleep(1000);
@@ -146,6 +174,19 @@ public class Server implements Runnable {
                     break;
 
                 case GET_RESULTS:
+                    boolean allFinished = false;
+                    while (!allFinished) {
+                        allFinished = connections.stream()
+                                .filter(connection1 -> connection1.getFinishTime() != 0)
+                                .count() == gameConfig.getMaxPlayers();
+                        if(!allFinished){
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                     connections.sort(Comparator.comparingDouble(Connection::getFinishTime));
                     connections.forEach(connection1 -> writer.println(
                             "player:" + connection1.getPlayerName() + "," +
