@@ -46,8 +46,8 @@ class Client:
         return table
 
     def waitOtherPlayers(self):
-        # todo: send my 'ready' status, read approval, when allows, start the game
         message = "READY " + '\n'
+        self.clearConsol()
         self.socket.send(message.encode())
         print("waiting for other players...")
         status = str(self.socket.recv(2048)[:-1])
@@ -72,8 +72,14 @@ class Client:
         message = "KILL_SERVER"
         self.socket.send(message.encode())
 
+    def clearConsol(self):
+        if sys.platform == 'win32':
+            os.system('cls')
+        else:
+            os.system('clear')
+
     def receivePlayerId(self, player_name):
-        message = "CREATE_PLAYER_ID player_name:" + player_name  + '\n'
+        message = "CREATE_PLAYER_ID player_name:" + player_name + '\n'
         self.socket.send(message.encode())
         answer = self.socket.recv(2048)
         print(answer)
@@ -85,7 +91,6 @@ class Client:
 def main(server_ip, server_port, isHostRun, maze_height, player_name):
     print(server_port, server_ip, isHostRun, player_name)
     client = Client(server_ip, server_port, player_name)
-    # client.connect()
     if isHostRun == str(True):
         table = maze.get_table(int(maze_height))
         client.saveTable(table)
@@ -102,9 +107,3 @@ def main(server_ip, server_port, isHostRun, maze_height, player_name):
 
 if __name__ == '__main__':
     main(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
-
-def clearConsol():
-    if sys.platform == 'win32':
-        os.system('cls')
-    else:
-        os.system('clear')
