@@ -90,7 +90,7 @@ public class HostClient extends Client{
             server.setMaxPlayers(maxPlayers);
             server.setName(gameServerName);
             server.setPassword(password);
-            server.setPlayersCount(1);
+            server.setPlayersCount(0);
 
         } catch (IOException e) {
             e.printStackTrace();
