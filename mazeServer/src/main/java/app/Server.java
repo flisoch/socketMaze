@@ -78,7 +78,7 @@ public class Server implements Runnable {
         int maxPlayers;
 
         try {
-            Socket socket = new Socket(MainServer.getServerSocket().getInetAddress(),MainServer.getPORT());
+            Socket socket = new Socket(MainServer.serverGlobalIp, MainServer.getPORT());
             PrintWriter writer = new PrintWriter(socket.getOutputStream());
             writer.println(Command.GET_SERVER_CONFIG.name() + " " + serverSocket.getLocalPort());
             writer.flush();
