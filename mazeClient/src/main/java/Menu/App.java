@@ -114,7 +114,13 @@ public class App {
         try {
             System.out.println("choose a server: ");
             String choice = reader.readLine();
-            Server server = servers.get(Integer.parseInt(choice) - 1);
+            Server server = null;
+            try {
+                server = servers.get(Integer.parseInt(choice) - 1);
+            }catch (Exception e){
+                System.out.println("incorrect input");
+                return;
+            }
             String clientPassword = askPassword();
             if(passwordIsCorrect(server, clientPassword)){
                 connectToServer(server, false);
