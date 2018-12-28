@@ -5,18 +5,13 @@ import lombok.Data;
 import protocol.Command;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.net.*;
+import java.util.*;
 
 public class MainServer {
 
     private static final int PORT = 1234;
+    public static String serverGlobalIp = configureIp();
     private static int counter = 1;
     private static ServerSocket serverSocket;
     private static List<GameConfig> gameServerConfigs;
@@ -25,6 +20,32 @@ public class MainServer {
         MainServer server = new MainServer();
         server.run();
 
+    }
+
+    private static String configureIp(){
+        String ip;
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                // filters out 127.0.0.1 and inactive interfaces
+                if (iface.isLoopback() || !iface.isUp())
+                    continue;
+
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while(addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    ip = addr.getHostAddress();
+                    if(ip.split("\\.").length == 4){
+                        System.out.println(ip);
+                        return ip;
+                    }
+                }
+            }
+        } catch (SocketException e) {
+            throw new RuntimeException(e);
+        }
+        return "0.0.0.0";
     }
 
     public static int getPORT() {
@@ -86,7 +107,7 @@ public class MainServer {
                     Server server = createGameServer();
                     InetAddress serverAddress = server.getServerSocket().getInetAddress();
                     int port = server.getServerSocket().getLocalPort();
-                    writer.println("ip:" + serverAddress.getHostAddress());
+                    writer.println("ip:" + serverGlobalIp);
                     writer.println("port:" + port);
                     writer.println(Command.END_MESSAGE);
                     writer.flush();
