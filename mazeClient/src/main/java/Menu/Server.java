@@ -6,7 +6,6 @@ import java.net.InetAddress;
 
 @Data
 @Builder
-@ToString
 @AllArgsConstructor
 public class Server {
     private InetAddress address;
@@ -17,4 +16,8 @@ public class Server {
     private int playersCount;
     private int mazeHeight;
 
+    @Override
+    public String toString() {
+        return "Server(address=" + address + " port=" + port + " name=" + name + " maxPlayers=" + maxPlayers + ")";
+    }
 }
